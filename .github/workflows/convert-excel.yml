@@ -1,0 +1,42 @@
+name: Convert Excel to JSON
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  convert-and-commit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run conversion script
+        run: node convert.js
+
+      - name: Commit and push dictionary.json
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add dictionary.json
+          
+          # Check if there are changes to commit
+          if git diff --cached --quiet; then
+            echo "No changes in dictionary.json. Skipping commit."
+          else
+            git commit -m "Auto-update dictionary.json from Excel sheet [skip ci]"
+            git push
+          fi
